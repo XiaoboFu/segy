@@ -1,0 +1,1147 @@
+.\" This is a comment line. And the .\" present comment 
+.\" segy lib user manual  
+.TH SEGY 1 "2017-09-08" "SEGY lib 2.0" "User Manual"
+.\" SEGY is the title  
+.\" 1:表示此命令出现在手册页的第几部分,范围为1-8的数字,和定义这个文件名小数点后的数字一致  
+.\" "2016-07-18":表示"2012-07-18"显示在整个页的下中
+.\" "create 1.01":表示"create 1.01"显示在整个页的左下
+.\" "User Commands":表示"User Commands"显示在整个页的上中
+.\" .TH在文件的开始,主要说明标题  
+.SH NAME  
+.\" 说明名称  
+.\" .SH从行首开始,靠左边,宽体  
+\fBgetSgyInfo, segyread, segywrite, MemSetReelHead, MemSetTraceHead, write2asc, pickCDPgather, pickShotgather.
+.\"-:表示为\-  
+.SH SYNOPSIS  
+.\" 说明语法格式  
+.B #include <segy.h>
+.sp
+.nf
+.B int getSgyInfo(char *ifile , bhed *re, int *ntrace, int *ns, int *dt);
+.br
+.B int segyread (char *ifile, segy *tr, float *trace, int cTrace);
+.br
+.B int segywrite(char *ofile, bhed re, segy tr, float *trace, int cTrace);
+.br
+.B int SEGYWRITE(const char *ofile, bhed re, segy tr, float *trace, int format, int endian, int cTrace);
+.br
+.B int SEGYWRITEF(bhed re, segy tr, float *trace, int format, int endian, int cTrace);
+.br
+.B int segywriteIBM(char *ofile, bhed re, segy tr, float *trace, int cTrace);
+.br
+.B int write2asc(char *ofile, bhed re, segy tr, float *trace, int cTrace);
+.br
+.B int MemSetReelHead(bhed* re);
+.br
+.B int MemSetTraceHead(segy* tr);
+.br
+.B int pickCDPgather(char *ifile, segy *trBuf,  float *traceBuf, long int *size, int *ntr, int *flag);
+.br
+.B int pickShotgather(char *ifile, segy *trBuf,  float *traceBuf, long int *size, int *ntr, int *flag);
+.br
+.sp
+.B Through the stdin and stdout to get the filename
+.sp
+.B int getSgyInfoF(bhed *re, int *ntrace, int *ns, int *dt);
+.br
+.B int segyreadF (segy *tr, float *trace, int cTrace);
+.br
+.B int segywriteF(bhed re, segy tr, float *trace, int cTrace);
+.br
+.B int segywriteFIBM(bhed re, segy tr, float *trace, int cTrace);
+.br
+.B int write2ascF(bhed re, segy tr, float *trace, int cTrace);
+.br
+.B int pickCDPgatherF(segy *trBuf,  float *traceBuf, long int *size, int *ntr, int *flag);
+.br
+.B int pickShotgather(segy *trBuf,  float *traceBuf, long int *size, int *ntr, int *flag);
+.br
+.B int GetTrace(FILE *ifp, Segy *tr);
+.br
+.B int SaveTrace(FILE *ofp, Segy tr);
+.br
+.B int GetTr(Segy *tr);
+.br
+.B int PutTr(Segy tr);
+.sp
+.B write segy file recommand use the SEGYWRITE();
+.sp
+.B endian=0 for little endian machines =1 for big endian machines
+.br
+.B format=1 IBM  =5 IEEE  format=1 endian=0 is a bug for seisee
+.sp
+.fi
+.SH OPTIONS
+.TP \w'\fB\-\^\-version\fP'u+3n
+.\" .nf
+.B ifile 
+input file.
+.TP
+.B ofile 
+output file.
+.TP
+.B bhed 
+reel head.
+.TP
+.B segy   
+trace head.
+.TP
+.B ntrace 
+total number of trace of the segy file.
+.TP
+.B ns     
+length of the trace.
+.TP
+.B dt     
+sample interval.
+.TP
+.B trace  
+seismic data.
+.TP
+.B cTrace 
+current trace, from 0 start.
+.TP
+.B size   
+seek long size to begin of gather. init 0.
+.TP
+.B ntr    
+number of trace for gather. init 0.
+.TP
+.B flag   
+end mark of the gather. init 0.
+.\" .fi
+.sp
+.\".B:表示宽体,如果本行没有文字,则.B标签的下一行为宽体  
+.\" \-OPTION... FILE...  
+.SH DESCRIPTION  
+.TP 0
+.\"说明本命令或程序等的相关描述  
+This manual page document is from Xiaobo Foo, Yu's Team. \fBlibsegy.so(libsegy.a)\fR is a library for segy file read and write.
+.sp
+typedef struct {	/* segy - trace identification header */
+.sp
+.if n .ti +0n
+int tracl;	/* Trace sequence number within line 
+.if n .ti +4n
+		   --numbers continue to increase if the 
+.if n .ti +4n
+		   same line continues across multiple 
+.if n .ti +4n
+		   SEG Y files.  
+.if n .ti +4n
+		   byte# 1-4 
+.if n .ti +4n
+		 */
+.if n .ti +0n
+int tracr;	/* Trace sequence number within SEG Y file 
+.if n .ti +4n
+		   ---each file starts with trace sequence 
+.if n .ti +4n
+		   one 
+.if n .ti +4n
+		   byte# 5-8 
+.if n .ti +4n
+		 */
+.if n .ti +0n
+int fldr;	/* Original field record number 
+.if n .ti +4n
+		   byte# 9-12 
+.if n .ti +4n
+		 */
+.if n .ti +0n
+int tracf;	/* Trace number within original field record 
+.if n .ti +4n
+		   byte# 13-16 
+.if n .ti +4n
+		 */
+.if n .ti +0n
+int ep;		/* energy source point number 
+.if n .ti +4n
+		   ---Used when more than one record occurs 
+.if n .ti +4n
+		   at the same effective surface location.  
+.if n .ti +4n
+		   byte# 17-20 
+.if n .ti +4n
+		 */
+.if n .ti +0n
+int cdp;	/* Ensemble number (i.e. CDP, CMP, CRP,...) 
+.if n .ti +4n
+		   byte# 21-24 
+.if n .ti +4n
+		 */ 
+.if n .ti +0n
+int cdpt;	/* trace number within the ensemble 
+.if n .ti +4n
+		   ---each ensemble starts with trace number one.  
+.if n .ti +4n
+		   byte# 25-28
+.if n .ti +4n
+		 */
+.if n .ti +0n
+short trid;	/* trace identification code:
+.if n .ti +4n
+			-1 = Other
+.if n .ti +4n
+		         0 = Unknown
+.if n .ti +4n
+			 1 = Seismic data
+.if n .ti +4n
+			 2 = Dead
+.if n .ti +4n
+			 3 = Dummy
+.if n .ti +4n
+			 4 = Time break
+.if n .ti +4n
+			 5 = Uphole
+.if n .ti +4n
+			 6 = Sweep
+.if n .ti +4n
+			 7 = Timing
+.if n .ti +4n
+			 8 = Water break
+.if n .ti +4n
+			 9 = Near-field gun signature
+.if n .ti +4n
+			10 = Far-field gun signature
+.if n .ti +4n
+			11 = Seismic pressure sensor
+.if n .ti +4n
+			12 = Multicomponent seismic sensor
+.if n .ti +4n
+				- Vertical component
+.if n .ti +4n
+			13 = Multicomponent seismic sensor
+.if n .ti +4n
+				- Cross-line component 
+.if n .ti +4n
+			14 = Multicomponent seismic sensor
+.if n .ti +4n
+				- in-line component 
+.if n .ti +4n
+			15 = Rotated multicomponent seismic sensor
+.if n .ti +4n
+				- Vertical component
+.if n .ti +4n
+			16 = Rotated multicomponent seismic sensor
+.if n .ti +4n
+				- Transverse component
+.if n .ti +4n
+			17 = Rotated multicomponent seismic sensor
+.if n .ti +4n
+				- Radial component
+.if n .ti +4n
+			18 = Vibrator reaction mass
+.if n .ti +4n
+			19 = Vibrator baseplate
+.if n .ti +4n
+			20 = Vibrator estimated ground force
+.if n .ti +4n
+			21 = Vibrator reference
+.if n .ti +4n
+			22 = Time-velocity pairs
+.if n .ti +4n
+			23 ... N = optional use 
+.if n .ti +4n
+				(maximum N = 32,767)
+.if n .ti +4n
+			Following are CWP id flags:
+.if n .ti +4n
+			109 = autocorrelation
+.if n .ti +4n
+			110 = Fourier transformed - no packing
+.if n .ti +4n
+			     xr[0],xi[0], ..., xr[N-1],xi[N-1]
+.if n .ti +4n
+			111 = Fourier transformed - unpacked Nyquist
+.if n .ti +4n
+			     xr[0],xi[0],...,xr[N/2],xi[N/2]
+.if n .ti +4n
+			112 = Fourier transformed - packed Nyquist
+.if n .ti +4n
+	 		     even N:
+.if n .ti +4n
+			     xr[0],xr[N/2],xr[1],xi[1], ...,
+.if n .ti +4n
+				xr[N/2 -1],xi[N/2 -1]
+.if n .ti +4n
+				(note the exceptional second entry)
+.if n .ti +4n
+			     odd N:
+.if n .ti +4n
+			     xr[0],xr[(N-1)/2],xr[1],xi[1], ...,
+.if n .ti +4n
+				xr[(N-1)/2 -1],xi[(N-1)/2 -1],xi[(N-1)/2]
+.if n .ti +4n
+				(note the exceptional second & last entries)
+.if n .ti +4n
+			113 = Complex signal in the time domain
+.if n .ti +4n
+			     xr[0],xi[0], ..., xr[N-1],xi[N-1]
+.if n .ti +4n
+			114 = Fourier transformed - amplitude/phase
+.if n .ti +4n
+			     a[0],p[0], ..., a[N-1],p[N-1]
+.if n .ti +4n
+			115 = Complex time signal - amplitude/phase
+.if n .ti +4n
+			     a[0],p[0], ..., a[N-1],p[N-1]
+.if n .ti +4n
+			116 = Real part of complex trace from 0 to Nyquist
+.if n .ti +4n
+			117 = Imag part of complex trace from 0 to Nyquist
+.if n .ti +4n
+			118 = Amplitude of complex trace from 0 to Nyquist
+.if n .ti +4n
+			119 = Phase of complex trace from 0 to Nyquist
+.if n .ti +4n
+			121 = Wavenumber time domain (k-t)
+.if n .ti +4n
+			122 = Wavenumber frequency (k-omega)
+.if n .ti +4n
+			123 = Envelope of the complex time trace
+.if n .ti +4n
+			124 = Phase of the complex time trace
+.if n .ti +4n
+			125 = Frequency of the complex time trace
+.if n .ti +4n
+			130 = Depth-Range (z-x) traces
+.if n .ti +4n
+			201 = Seismic data packed to bytes (by supack1)
+.if n .ti +4n
+			202 = Seismic data packed to 2 bytes (by supack2)
+.if n .ti +4n
+			   byte# 29-30
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	short nvs;	/* Number of vertically summed traces yielding
+.if n .ti +4n
+			   this trace. (1 is one trace, 
+.if n .ti +4n
+			   2 is two summed traces, etc.)
+.if n .ti +4n
+			   byte# 31-32
+.if n .ti +4n
+			 */
+
+.if n .ti +0n
+	short nhs;	/* Number of horizontally summed traces yielding
+.if n .ti +4n
+			   this trace. (1 is one trace
+.if n .ti +4n
+			   2 is two summed traces, etc.)
+.if n .ti +4n
+			   byte# 33-34
+.if n .ti +4n
+			 */
+
+.if n .ti +0n
+	short duse;	/* Data use:
+.if n .ti +4n
+				1 = Production
+.if n .ti +4n
+				2 = Test
+.if n .ti +4n
+			   byte# 35-36
+.if n .ti +4n
+			 */
+
+.if n .ti +0n
+	int offset;	/* Distance from the center of the source point 
+.if n .ti +4n
+			   to the center of the receiver group 
+.if n .ti +4n
+			   (negative if opposite to direction in which 
+.if n .ti +4n
+			   the line was shot).
+.if n .ti +4n
+			   byte# 37-40
+.if n .ti +4n
+			 */
+
+.if n .ti +0n
+	int gelev;	/* Receiver group elevation from sea level
+.if n .ti +4n
+			   (all elevations above the Vertical datum are 
+.if n .ti +4n
+			   positive and below are negative).
+.if n .ti +4n
+			   byte# 41-44
+.if n .ti +4n
+			 */
+
+.if n .ti +0n
+	int selev;	/* Surface elevation at source.
+.if n .ti +4n
+			   byte# 45-48
+.if n .ti +4n
+			 */
+
+.if n .ti +0n
+	int sdepth;	/* Source depth below surface (a positive number).
+.if n .ti +4n
+			   byte# 49-52
+.if n .ti +4n
+			 */
+
+.if n .ti +0n
+	int gdel;	/* Datum elevation at receiver group.
+.if n .ti +4n
+			   byte# 53-56
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	int sdel;	/* Datum elevation at source.
+.if n .ti +4n
+			   byte# 57-60
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	int swdep;	/* Water depth at source.
+.if n .ti +4n
+			   byte# 61-64
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	int gwdep;	/* Water depth at receiver group.
+.if n .ti +4n
+			   byte# 65-68
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	short scalel;	/* Scalar to be applied to the previous 7 entries
+.if n .ti +4n
+			   to give the real value. 
+.if n .ti +4n
+			   Scalar = 1, +10, +100, +1000, +10000.
+.if n .ti +4n
+			   If positive, scalar is used as a multiplier,
+.if n .ti +4n
+			   if negative, scalar is used as a divisor.
+.if n .ti +4n
+			   byte# 69-70
+.if n .ti +4n
+			 */
+
+.if n .ti +0n
+	short scalco;	/* Scalar to be applied to the next 4 entries
+.if n .ti +4n
+			   to give the real value. 
+.if n .ti +4n
+			   Scalar = 1, +10, +100, +1000, +10000.
+.if n .ti +4n
+			   If positive, scalar is used as a multiplier,
+.if n .ti +4n
+			   if negative, scalar is used as a divisor.
+.if n .ti +4n
+			   byte# 71-72
+.if n .ti +4n
+			 */
+
+.if n .ti +0n
+	int  sx;	/* Source coordinate - X 
+.if n .ti +4n
+			   byte# 73-76
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	int  sy;	/* Source coordinate - Y 
+.if n .ti +4n
+			   byte# 77-80
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	int  gx;	/* Group coordinate - X 
+.if n .ti +4n
+			   byte# 81-84
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	int  gy;	/* Group coordinate - Y 
+.if n .ti +4n
+			   byte# 85-88
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	short counit;	/* Coordinate units: (for previous 4 entries and
+.if n .ti +4n
+				for the 7 entries before scalel)
+.if n .ti +4n
+			   1 = Length (meters or feet)
+.if n .ti +4n
+			   2 = Seconds of arc
+.if n .ti +4n
+			   3 = Decimal degrees
+.if n .ti +4n
+			   4 = Degrees, minutes, seconds (DMS)
+.if n .ti +4n
+			In case 2, the X values are longitude and 
+.if n .ti +4n
+			the Y values are latitude, a positive value designates
+.if n .ti +4n
+			the number of seconds east of Greenwich
+.if n .ti +4n
+				or north of the equator
+.if n .ti +4n
+
+			In case 4, to encode +-DDDMMSS
+.if n .ti +4n
+			counit = +-DDD*10^4 + MM*10^2 + SS,
+.if n .ti +4n
+			with scalco = 1. To encode +-DDDMMSS.ss
+.if n .ti +4n
+			counit = +-DDD*10^6 + MM*10^4 + SS*10^2 
+.if n .ti +4n
+			with scalco = -100.
+.if n .ti +4n
+			   byte# 89-90
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	short wevel;	/* Weathering velocity. 
+.if n .ti +4n
+			   byte# 91-92
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	short swevel;	/* Subweathering velocity. 
+.if n .ti +4n
+			   byte# 93-94
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	short sut;	/* Uphole time at source in milliseconds. 
+.if n .ti +4n
+			   byte# 95-96
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	short gut;	/* Uphole time at receiver group in milliseconds. 
+.if n .ti +4n
+			   byte# 97-98
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	short sstat;	/* Source static correction in milliseconds. 
+.if n .ti +4n
+			   byte# 99-100
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	short gstat;	/* Group static correction  in milliseconds.
+.if n .ti +4n
+			   byte# 101-102
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	short tstat;	/* Total static applied  in milliseconds.
+.if n .ti +4n
+			   (Zero if no static has been applied.)
+.if n .ti +4n
+			   byte# 103-104
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	short laga;	/* Lag time A, time in ms between end of 240-
+.if n .ti +4n
+			   byte trace identification header and time
+.if n .ti +4n
+			   break, positive if time break occurs after
+.if n .ti +4n
+			   end of header, time break is defined as
+.if n .ti +4n
+			   the initiation pulse which maybe recorded
+.if n .ti +4n
+			   on an auxiliary trace or as otherwise
+.if n .ti +4n
+			   specified by the recording system 
+.if n .ti +4n
+			   byte# 105-106
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	short lagb;	/* lag time B, time in ms between the time break
+.if n .ti +4n
+			   and the initiation time of the energy source,
+.if n .ti +4n
+			   may be positive or negative 
+.if n .ti +4n
+			   byte# 107-108
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	short delrt;	/* delay recording time, time in ms between
+.if n .ti +4n
+			   initiation time of energy source and time
+.if n .ti +4n
+			   when recording of data samples begins
+.if n .ti +4n
+			   (for deep water work if recording does not
+.if n .ti +4n
+			   start at zero time) 
+.if n .ti +4n
+			   byte# 109-110
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	short muts;	/* mute time--start 
+.if n .ti +4n
+			   byte# 111-112
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	short mute;	/* mute time--end 
+.if n .ti +4n
+			   byte# 113-114
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	unsigned short ns;	/* number of samples in this trace 
+.if n .ti +4n
+			   byte# 115-116
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	unsigned short dt;	/* sample interval; in micro-seconds
+.if n .ti +4n
+			   byte# 117-118
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	short gain;	/* gain type of field instruments code:
+.if n .ti +4n
+				1 = fixed
+.if n .ti +4n
+				2 = binary
+.if n .ti +4n
+				3 = floating point
+.if n .ti +4n
+				4 ---- N = optional use 
+.if n .ti +4n
+			   byte# 119-120
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	short igc;	/* instrument gain constant 
+.if n .ti +4n
+			   byte# 121-122
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	short igi;	/* instrument early or initial gain 
+.if n .ti +4n
+			   byte# 123-124
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	short corr;	/* correlated:
+.if n .ti +4n
+				1 = no
+.if n .ti +4n
+				2 = yes 
+.if n .ti +4n
+			   byte# 125-126
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	short sfs;	/* sweep frequency at start 
+.if n .ti +4n
+			   byte# 127-128
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	short sfe;	/* sweep frequency at end
+.if n .ti +4n
+			   byte# 129-130
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	short slen;	/* sweep length in ms 
+.if n .ti +4n
+			   byte# 131-132
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	short styp;	/* sweep type code:
+.if n .ti +4n
+				1 = linear
+.if n .ti +4n
+				2 = cos-squared
+.if n .ti +4n
+				3 = other
+.if n .ti +4n
+			   byte# 133-134
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	short stas;	/* sweep trace length at start in ms
+.if n .ti +4n
+			   byte# 135-136
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	short stae;	/* sweep trace length at end in ms 
+.if n .ti +4n
+			   byte# 137-138
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	short tatyp;	/* taper type: 1=linear, 2=cos^2, 3=other 
+.if n .ti +4n
+			   byte# 139-140
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	short afilf;	/* alias filter frequency if used 
+.if n .ti +4n
+			   byte# 141-142
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	short afils;	/* alias filter slope
+.if n .ti +4n
+			   byte# 143-144
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	short nofilf;	/* notch filter frequency if used
+.if n .ti +4n
+			   byte# 145-146
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	short nofils;	/* notch filter slope
+.if n .ti +4n
+			   byte# 147-148
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	short lcf;	/* low cut frequency if used
+.if n .ti +4n
+			   byte# 149-150
+			*/
+.if n .ti +4n
+
+.if n .ti +0n
+	short hcf;	/* high cut frequncy if used
+.if n .ti +4n
+			   byte# 151-152
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	short lcs;	/* low cut slope
+.if n .ti +4n
+			   byte# 153-154
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	short hcs;	/* high cut slope
+.if n .ti +4n
+			   byte# 155-156
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	short year;	/* year data recorded
+.if n .ti +4n
+			   byte# 157-158
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	short day;	/* day of year
+.if n .ti +4n
+			   byte# 159-160
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	short hour;	/* hour of day (24 hour clock) 
+.if n .ti +4n
+			   byte# 161-162
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	short minute;	/* minute of hour
+.if n .ti +4n
+			   byte# 163-164
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	short sec;	/* second of minute
+.if n .ti +4n
+			   byte# 165-166
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	short timbas;	/* time basis code:
+.if n .ti +4n
+				1 = local
+				2 = GMT
+.if n .ti +4n
+				3 = other
+.if n .ti +4n
+			   byte# 167-168
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	short trwf;	/* trace weighting factor, defined as 1/2^N
+.if n .ti +4n
+			   volts for the least sigificant bit
+.if n .ti +4n
+			   byte# 169-170
+.if n .ti +4n
+			*/
+.if n .ti +4n
+
+.if n .ti +0n
+	short grnors;	/* geophone group number of roll switch
+.if n .ti +4n
+			   position one
+.if n .ti +4n
+			   byte# 171-172
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	short grnofr;	/* geophone group number of trace one within
+.if n .ti +4n
+			   original field record
+.if n .ti +4n
+			   byte# 173-174
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	short grnlof;	/* geophone group number of last trace within
+.if n .ti +4n
+			   original field record
+.if n .ti +4n
+			   byte# 175-176
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	short gaps;	/* gap size (total number of groups dropped)
+.if n .ti +4n
+			   byte# 177-178
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	short otrav;	/* overtravel taper code:
+.if n .ti +4n
+				1 = down (or behind)
+.if n .ti +4n
+				2 = up (or ahead)
+.if n .ti +4n
+			   byte# 179-180
+.if n .ti +4n
+			*/
+
+.if n .ti +0n
+	/* next defined by Xiaobo.Foo from College of Geophysics, Chengdu University of Technology */
+.if n .ti +0n
+	short int cdp_x;/* CDP X coordinate
+.if n .ti +4n
+			   byte# 181-182
+.if n .ti +4n
+			*/
+.if n .ti +0n
+	short int cdp_y;/* CDP Y coordinate
+.if n .ti +4n
+			   byte# 183-184
+.if n .ti +4n
+			*/
+.if n .ti +0n
+	short int Inline;/* the NO. of Inline
+.if n .ti +4n
+			   byte# 185-186
+.if n .ti +4n
+			*/
+.if n .ti +0n
+	short int corssline; /* corssline number
+.if n .ti +4n
+			   byte# 187-188
+.if n .ti +4n
+			*/
+.if n .ti +0n
+	short int incident;/* incident angle the units are degree not radian.
+.if n .ti +4n
+			   byte# 189-190
+.if n .ti +4n
+			*/
+.if n .ti +0n
+	short int ntrac; /* number of traces
+.if n .ti +4n
+			    byte# 191-192
+.if n .ti +4n
+			*/
+.if n .ti +0n
+	short int ffile; /* file NO.
+.if n .ti +4n
+			    byte# 193-194
+.if n .ti +4n
+			*/
+.if n .ti +0n
+	short int dimension;/* 2D, 3D
+.if n .ti +4n
+			       0=2D
+.if n .ti +4n
+			       1=3D
+.if n .ti +4n
+			       byte# 195-196
+.if n .ti +4n
+			*/
+.if n .ti +0n
+    	short int unass[22]; /*unassigned--for optional info*/
+
+.if n .ti +0n
+}segy;
+.sp
+typedef struct {	/* bhed - binary header */
+
+.if n .ti +0n
+	char commend[3200];
+     
+
+.if n .ti +0n
+	int jobid;	/* job identification number */
+
+.if n .ti +0n
+	int lino;	/* line number (only one line per reel) */
+
+.if n .ti +0n
+	int reno;	/* reel number */
+
+.if n .ti +0n
+	short ntrpr;	/* number of data traces per record */
+
+.if n .ti +0n
+        short nart;	/* number of auxiliary traces per record */
+
+.if n .ti +0n
+	unsigned short hdt; /* sample interval in micro secs for this reel */
+
+.if n .ti +0n
+	unsigned short dto; /* same for original field recording */
+
+.if n .ti +0n
+	unsigned short hns; /* number of samples per trace for this reel */
+
+.if n .ti +0n
+	unsigned short nso; /* same for original field recording */
+
+.if n .ti +0n
+	short format;	/* data sample format code:
+.if n .ti +4n
+				1 = floating point, 4 byte (32 bits)
+.if n .ti +4n
+				2 = fixed point, 4 byte (32 bits)
+.if n .ti +4n
+				3 = fixed point, 2 byte (16 bits)
+.if n .ti +4n
+				4 = fixed point w/gain code, 4 byte (32 bits)
+.if n .ti +4n
+				5 = IEEE floating point, 4 byte (32 bits)
+.if n .ti +4n
+				8 = two's complement integer, 1 byte (8 bits)
+.if n .ti +4n
+			*/
+
+	short fold;	/* CDP fold expected per CDP ensemble */
+
+	short tsort;	/* trace sorting code: 
+.if n .ti +4n
+				1 = as recorded (no sorting)
+.if n .ti +4n
+				2 = CDP ensemble
+.if n .ti +4n
+				3 = single fold continuous profile
+.if n .ti +4n
+				4 = horizontally stacked */
+
+	short vscode;	/* vertical sum code:
+.if n .ti +4n
+				1 = no sum
+.if n .ti +4n
+				2 = two sum ...
+.if n .ti +4n
+				N = N sum (N = 32,767) */
+
+	short hsfs;	/* sweep frequency at start */
+
+	short hsfe;	/* sweep frequency at end */
+
+	short hslen;	/* sweep length (ms) */
+
+	short hstyp;	/* sweep type code:
+.if n .ti +4n
+				1 = linear
+.if n .ti +4n
+				2 = parabolic
+.if n .ti +4n
+				3 = exponential
+.if n .ti +4n
+				4 = other */
+
+	short schn;	/* trace number of sweep channel */
+
+	short hstas;	/* sweep trace taper length at start if
+.if n .ti +4n
+			   tapered (the taper starts at zero time
+.if n .ti +4n
+			   and is effective for this length) */
+
+	short hstae;	/* sweep trace taper length at end (the ending
+.if n .ti +4n
+			   taper starts at sweep length minus the taper
+.if n .ti +4n
+			   length at end) */
+
+	short htatyp;	/* sweep trace taper type code:
+.if n .ti +4n
+				1 = linear
+.if n .ti +4n
+				2 = cos-squared
+.if n .ti +4n
+				3 = other */
+
+	short hcorr;	/* correlated data traces code:
+.if n .ti +4n
+				1 = no
+.if n .ti +4n
+				2 = yes */
+
+	short bgrcv;	/* binary gain recovered code:
+.if n .ti +4n
+				1 = yes
+.if n .ti +4n
+				2 = no */
+
+	short rcvm;	/* amplitude recovery method code:
+.if n .ti +4n
+				1 = none
+.if n .ti +4n
+				2 = spherical divergence
+.if n .ti +4n
+				3 = AGC
+.if n .ti +4n
+				4 = other */
+
+	short mfeet;	/* measurement system code:
+.if n .ti +4n
+				1 = meters
+.if n .ti +4n
+				2 = feet */
+
+	short polyt;	/* impulse signal polarity code:
+.if n .ti +4n
+				1 = increase in pressure or upward
+.if n .ti +4n
+				    geophone case movement gives
+.if n .ti +4n
+				    negative number on tape
+.if n .ti +4n
+				2 = increase in pressure or upward
+.if n .ti +4n
+				    geophone case movement gives
+.if n .ti +4n
+				    positive number on tape */
+
+	short vpol;	/* vibratory polarity code:
+.if n .ti +4n
+				code	seismic signal lags pilot by
+.if n .ti +4n
+				1	337.5 to  22.5 degrees
+.if n .ti +4n
+				2	 22.5 to  67.5 degrees
+.if n .ti +4n
+				3	 67.5 to 112.5 degrees
+.if n .ti +4n
+				4	112.5 to 157.5 degrees
+.if n .ti +4n
+				5	157.5 to 202.5 degrees
+.if n .ti +4n
+				6	202.5 to 247.5 degrees
+.if n .ti +4n
+				7	247.5 to 292.5 degrees
+.if n .ti +4n
+				8	293.5 to 337.5 degrees */
+
+	short hunass[170];	/* unassigned */
+
+} bhed;
+
+.\"\fB文字\fR:表示将该文字设置成宽体  
+.\"\fI文字\fR:表示将文字加下划线  
+.\".:表示为\&.  
+.SH COMPILE
+-I$SEGY/include -L$SEGY/lib -lsegy
+.SH COPYRIGHT  
+.\":版权声明  
+\fBSEGY lib's\fR Copyright Yu's Team. This lib is a free library, you can redistribute it or modify it under the GNU General Public License.
+.SH ERRORS  
+.\":漏洞说明  
+.TP 0  
+.\".TP n:表示TP标签下的第2行开始缩进n个字符(在第1行超过n字符的前提下)　n默认值为7  
+.\".TP 0:表示Report bugs to <sunrier@gmail.com> .这一句缩进0个字符,这句即为了实现换行的作用  
+There probably are some,but I don't know that what they are yet.  
+Report errors/bugs to <xiaobo_foo@126.com>.  
+.SH AUTHOR
+.TP 0
+.\":文档编写作者  
+Written by Xiaobo.Foo from Yu's Team, CDUT.
+Contact us: xiaobo_foo@126.com
+  
+.\"看显示创建man手册命令的结果groff -Tascii -man create.1(注:此时不会创建任务文件,只是看下显示效果)  
+.\"gzip create.1 把create.1压缩成.gz 文件,会创建一个create.1.gz的文件,而create.1文件会在gzip执行完后删除  
+.\"如果想保留原文件可以这样用:gzip -c create.1 > create.1.gz  
+.\"把文件create.1.gz放到/usr/share/man/man1下就可以完成create命令的man手册了  
+.\"当执行man create后还会在在/var/cache/man/cat1/create.1.bz2创建一个create.1.bz2压缩文件  
