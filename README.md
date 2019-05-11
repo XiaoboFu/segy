@@ -24,8 +24,11 @@ This library is for my personal scientific research. There are some unknowns: bu
 
 
 int main(int argc, char *argv[])
+
 {
+
     bhed re;   // File head
+    
     segy tr;   // Trace head
 
     int dt;    // time sample interva unit:us
