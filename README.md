@@ -25,21 +25,24 @@ This library is for my personal scientific research. There are some unknowns: bu
 
 int main(int argc, char *argv[])
 {
-    bhed re;
-    segy tr;
+    bhed re;   // File head
+    segy tr;   // Trace head
 
-    int dt;
-    int ns;
-    int ntr;
+    int dt;    // time sample interva unit:us
+    int ns;    // number of samples for one trace
+    int ntr;   // number of trace
 
+    // get segy file information
     getSgyInfo(argv[1], &re, &ntr, &ns, &dt);
-
+    // trace array
     float trace[ns];
     int itr;
 
     for(itr=0; itr<ntr; itr++)
     {
+        // read data
         segyread(argv[1], &tr, trace, itr);
+        // write data
         segywriteIBM(argv[2],re, tr, trace,itr);
     }
 
