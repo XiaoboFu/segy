@@ -6,7 +6,9 @@ This library is for my personal scientific research. There are some unknowns: bu
 
 # Install
 cd src/
+
 make
+
 sudo make install
 
 # Demo from 
