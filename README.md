@@ -4,10 +4,14 @@ Extract the core part from SU. However, the library only supports float-type seg
 
 This library is for my personal scientific research. There are some unknowns: bugs, but they don't affect my use.
 
+# Install
+cd src/
+make
+sudo make install
 
-####################################################
-# Demo from src/test.c
-####################################################
+# Demo from 
+Note: src/test.c
+
 /*************************************************************
  * File Name   : test.c
  * Author      : Xiaobo.Foo
