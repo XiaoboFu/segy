@@ -14,6 +14,10 @@ sudo make install
 # Demo from 
 Note: src/test.c
 
+# Set Enviornment 
+vi ~/.bashrc
+export LD_LIBARAY_PATH=$LD_LIBARAY_PATH:'segy path'
+
 /*************************************************************
  * File Name   : test.c
  * Author      : Xiaobo.Foo
