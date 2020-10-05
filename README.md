@@ -24,13 +24,15 @@ Note: src/test.c
  * Author      : Xiaobo.Foo
  * E-mail      : xiaobo_foo@126.com
  * Created Time: Sat 06 Oct 2018 05:11:10 PM CST
- * CopyRight   : Xiaobo.Foo & Yu's Team
- * Version     : 0.0.1
+ * CopyRight   : Xiaobo.Foo
+ * Version     : 1.0
  * Description : 
  * **********************************************************/
 
 #include <stdio.h>
+
 #include <stdlib.h>
+
 #include "../include/segy.h"
 
 
