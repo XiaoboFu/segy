@@ -11,7 +11,7 @@ make
 
 sudo make install
 
-# Set Enviornment 
+# Set Enviornment variable
 vi ~/.bashrc
 export LD_LIBARAY_PATH=$LD_LIBARAY_PATH:'segy path'
 
