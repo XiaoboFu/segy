@@ -23,6 +23,10 @@
 .br
 .B int segywrite(char *ofile, bhed re, segy tr, float *trace, int cTrace);
 .br
+.B int _segyread(FILE *_File, segy *tr, float *trace, bhed re);
+.br
+.B int _segywrite(FILE *_File, bhed re, segy tr, float *trace, int format, int cTrace);
+.br
 .B int SEGYWRITE(const char *ofile, bhed re, segy tr, float *trace, int format, int endian, int cTrace);
 .br
 .B int SEGYWRITEF(bhed re, segy tr, float *trace, int format, int endian, int cTrace);
